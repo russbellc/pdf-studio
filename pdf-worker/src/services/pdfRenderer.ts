@@ -61,41 +61,45 @@ export function inyectarVariables(
   let resultado = html;
 
   // Variables de Persona
-  resultado = resultado.replace(/\{\{persona\.nombres\}\}/g, persona.nombres || '');
-  resultado = resultado.replace(/\{\{persona\.apellidos\}\}/g, persona.apellidos || '');
-  resultado = resultado.replace(/\{\{persona\.numero_documento\}\}/g, persona.numero_documento || '');
-  resultado = resultado.replace(/\{\{persona\.tipo_documento\}\}/g, persona.tipo_documento || 'DNI');
-  resultado = resultado.replace(/\{\{persona\.correo\}\}/g, persona.correo || '');
-  resultado = resultado.replace(/\{\{persona\.telefono\}\}/g, persona.telefono || '');
-  resultado = resultado.replace(/\{\{persona\.cargo\}\}/g, persona.cargo || '');
-  resultado = resultado.replace(/\{\{persona\.departamento_area\}\}/g, persona.departamento_area || '');
+  resultado = resultado.replace(/\{\{persona\.nombres\}\}/g, () => persona.nombres || '');
+  resultado = resultado.replace(/\{\{persona\.apellidos\}\}/g, () => persona.apellidos || '');
+  resultado = resultado.replace(/\{\{persona\.numero_documento\}\}/g, () => persona.numero_documento || '');
+  resultado = resultado.replace(/\{\{persona\.tipo_documento\}\}/g, () => persona.tipo_documento || 'DNI');
+  resultado = resultado.replace(/\{\{persona\.correo\}\}/g, () => persona.correo || '');
+  resultado = resultado.replace(/\{\{persona\.telefono\}\}/g, () => persona.telefono || '');
+  resultado = resultado.replace(/\{\{persona\.cargo\}\}/g, () => persona.cargo || '');
+  resultado = resultado.replace(/\{\{persona\.departamento_area\}\}/g, () => persona.departamento_area || '');
 
   // Variables dinámicas en datos_adicionales
   if (persona.datos_adicionales) {
     for (const [k, v] of Object.entries(persona.datos_adicionales)) {
-      const regex = new RegExp(`\\{\\{persona\\.extra\\.${k}\\}\\}`, 'g');
-      resultado = resultado.replace(regex, String(v ?? ''));
+      const valStr = String(v ?? '');
+      const regexExtra = new RegExp(`\\{\\{persona\\.extra\\.${k}\\}\\}`, 'g');
+      resultado = resultado.replace(regexExtra, () => valStr);
+      const regexDirect = new RegExp(`\\{\\{${k}\\}\\}`, 'g');
+      resultado = resultado.replace(regexDirect, () => valStr);
     }
   }
 
   // Variables de Empresa
-  resultado = resultado.replace(/\{\{empresa\.razon_social\}\}/g, empresa.razon_social || '');
-  resultado = resultado.replace(/\{\{empresa\.identificacion_fiscal\}\}/g, empresa.identificacion_fiscal || '');
-  resultado = resultado.replace(/\{\{empresa\.correo_contacto\}\}/g, empresa.correo_contacto || '');
-  resultado = resultado.replace(/\{\{empresa\.telefono\}\}/g, empresa.telefono || '');
-  resultado = resultado.replace(/\{\{empresa\.direccion\}\}/g, empresa.direccion || '');
-  resultado = resultado.replace(/\{\{empresa\.logo_url\}\}/g, empresa.logo_url || '');
+  resultado = resultado.replace(/\{\{empresa\.razon_social\}\}/g, () => empresa.razon_social || '');
+  resultado = resultado.replace(/\{\{empresa\.identificacion_fiscal\}\}/g, () => empresa.identificacion_fiscal || '');
+  resultado = resultado.replace(/\{\{empresa\.correo_contacto\}\}/g, () => empresa.correo_contacto || '');
+  resultado = resultado.replace(/\{\{empresa\.telefono\}\}/g, () => empresa.telefono || '');
+  resultado = resultado.replace(/\{\{empresa\.direccion\}\}/g, () => empresa.direccion || '');
+  resultado = resultado.replace(/\{\{empresa\.logo_url\}\}/g, () => empresa.logo_url || '');
 
   // Variables del Sistema
-  resultado = resultado.replace(/\{\{fecha_emision\}\}/g, extra.fecha_emision);
-  resultado = resultado.replace(/\{\{qr_verificacion\}\}/g, extra.qr_verificacion);
-  resultado = resultado.replace(/\{\{hash_sha256\}\}/g, extra.hash_sha256);
+  resultado = resultado.replace(/\{\{fecha_emision\}\}/g, () => extra.fecha_emision);
+  resultado = resultado.replace(/\{\{qr_verificacion\}\}/g, () => extra.qr_verificacion);
+  resultado = resultado.replace(/\{\{hash_sha256\}\}/g, () => extra.hash_sha256);
 
   // Variables extras personalizadas
   for (const [k, v] of Object.entries(extra)) {
     if (!['fecha_emision', 'qr_verificacion', 'hash_sha256'].includes(k)) {
+      const valExtra = String(v ?? '');
       const regex = new RegExp(`\\{\\{${k}\\}\\}`, 'g');
-      resultado = resultado.replace(regex, String(v ?? ''));
+      resultado = resultado.replace(regex, () => valExtra);
     }
   }
 

@@ -71,17 +71,36 @@ export const GeneradorView: React.FC<GeneradorViewProps> = ({
     let html = plantillaActiva.contenido_html;
 
     // Inyección de variables para el preview
-    html = html.replace(/\{\{persona\.nombres\}\}/g, personaActiva.nombres || '');
-    html = html.replace(/\{\{persona\.apellidos\}\}/g, personaActiva.apellidos || '');
-    html = html.replace(/\{\{persona\.numero_documento\}\}/g, personaActiva.numero_documento || '');
-    html = html.replace(/\{\{persona\.tipo_documento\}\}/g, personaActiva.tipo_documento || 'DNI');
-    html = html.replace(/\{\{persona\.cargo\}\}/g, personaActiva.cargo || '');
-    html = html.replace(/\{\{persona\.departamento_area\}\}/g, personaActiva.departamento_area || '');
-    html = html.replace(/\{\{empresa\.razon_social\}\}/g, empresaActiva.razon_social || '');
-    html = html.replace(/\{\{empresa\.identificacion_fiscal\}\}/g, empresaActiva.identificacion_fiscal || '');
-    html = html.replace(/\{\{fecha_emision\}\}/g, fechaHoy);
-    html = html.replace(/\{\{qr_verificacion\}\}/g, 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=VERIFICACION_OFICIAL');
-    html = html.replace(/\{\{hash_sha256\}\}/g, 'SHA256: 7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069');
+    html = html.replace(/\{\{persona\.nombres\}\}/g, () => personaActiva.nombres || '');
+    html = html.replace(/\{\{persona\.apellidos\}\}/g, () => personaActiva.apellidos || '');
+    html = html.replace(/\{\{persona\.numero_documento\}\}/g, () => personaActiva.numero_documento || '');
+    html = html.replace(/\{\{persona\.tipo_documento\}\}/g, () => personaActiva.tipo_documento || 'DNI');
+    html = html.replace(/\{\{persona\.correo\}\}/g, () => personaActiva.correo || '');
+    html = html.replace(/\{\{persona\.telefono\}\}/g, () => personaActiva.telefono || '');
+    html = html.replace(/\{\{persona\.cargo\}\}/g, () => personaActiva.cargo || '');
+    html = html.replace(/\{\{persona\.departamento_area\}\}/g, () => personaActiva.departamento_area || '');
+
+    // Inyección dinámica de datos_adicionales (ej. materias, carrera, totales, etc.)
+    if (personaActiva.datos_adicionales) {
+      for (const [k, v] of Object.entries(personaActiva.datos_adicionales)) {
+        const valStr = String(v ?? '');
+        const regexExtra = new RegExp(`\\{\\{persona\\.extra\\.${k}\\}\\}`, 'g');
+        html = html.replace(regexExtra, () => valStr);
+        const regexDirect = new RegExp(`\\{\\{${k}\\}\\}`, 'g');
+        html = html.replace(regexDirect, () => valStr);
+      }
+    }
+
+    html = html.replace(/\{\{empresa\.razon_social\}\}/g, () => empresaActiva.razon_social || '');
+    html = html.replace(/\{\{empresa\.identificacion_fiscal\}\}/g, () => empresaActiva.identificacion_fiscal || '');
+    html = html.replace(/\{\{empresa\.correo_contacto\}\}/g, () => empresaActiva.correo_contacto || '');
+    html = html.replace(/\{\{empresa\.telefono\}\}/g, () => empresaActiva.telefono || '');
+    html = html.replace(/\{\{empresa\.direccion\}\}/g, () => empresaActiva.direccion || '');
+    html = html.replace(/\{\{empresa\.logo_url\}\}/g, () => empresaActiva.logo_url || '');
+
+    html = html.replace(/\{\{fecha_emision\}\}/g, () => fechaHoy);
+    html = html.replace(/\{\{qr_verificacion\}\}/g, () => 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=VERIFICACION_OFICIAL');
+    html = html.replace(/\{\{hash_sha256\}\}/g, () => 'SHA256: 7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069');
 
     setPreviewHtml(html);
   }, [empresaActiva, personaActiva, plantillaActiva]);

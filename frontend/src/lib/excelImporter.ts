@@ -51,8 +51,10 @@ export async function parsearExcelPersonas(
       columnasDetectadas.add(colName);
     });
 
-    // Mapeo flexible de documento
+    // Mapeo flexible de documento (DNI, ID internacional, UoPeople ID, etc.)
     const numeroDoc =
+      normalizedRow['uopeople_id'] ||
+      normalizedRow['id'] ||
       normalizedRow['dni'] ||
       normalizedRow['numero_documento'] ||
       normalizedRow['documento'] ||
@@ -78,7 +80,7 @@ export async function parsearExcelPersonas(
     }
 
     if (!numeroDoc) {
-      errores.push({ fila: filaNum, mensaje: 'Falta el número de documento / DNI.' });
+      errores.push({ fila: filaNum, mensaje: 'Falta el número de documento / ID / DNI.' });
       return;
     }
 
@@ -89,14 +91,17 @@ export async function parsearExcelPersonas(
 
     const correo = normalizedRow['correo'] || normalizedRow['email'] || normalizedRow['correo_electronico'] || '';
     const telefono = normalizedRow['telefono'] || normalizedRow['celular'] || normalizedRow['movil'] || '';
-    const cargo = normalizedRow['cargo'] || normalizedRow['puesto'] || normalizedRow['ocupacion'] || '';
-    const depto = normalizedRow['departamento_area'] || normalizedRow['area'] || normalizedRow['departamento'] || '';
-    const tipoDoc = normalizedRow['tipo_documento'] || normalizedRow['tipo_doc'] || 'DNI';
+    const cargo = normalizedRow['cargo'] || normalizedRow['puesto'] || normalizedRow['ocupacion'] || (normalizedRow['carrera'] ? 'Estudiante' : '');
+    const depto = normalizedRow['departamento_area'] || normalizedRow['area'] || normalizedRow['departamento'] || normalizedRow['carrera'] || '';
+    const tipoDoc = normalizedRow['tipo_documento'] || normalizedRow['tipo_doc'] || (normalizedRow['uopeople_id'] ? 'ID' : 'DNI');
 
     // Todas las demás columnas van a datos_adicionales
     const datosAdicionales: Record<string, any> = {};
+    if (normalizedRow['uopeople_id']) {
+      datosAdicionales['uopeople_id'] = normalizedRow['uopeople_id'];
+    }
     const clavesMapeadas = [
-      'dni', 'numero_documento', 'documento', 'nro_documento', 'nro_doc', 'cedula', 'rut',
+      'dni', 'numero_documento', 'documento', 'nro_documento', 'nro_doc', 'cedula', 'rut', 'id',
       'nombres', 'nombre', 'apellidos', 'apellido', 'apellidos_y_nombres', 'nombres_y_apellidos',
       'correo', 'email', 'correo_electronico', 'telefono', 'celular', 'movil',
       'cargo', 'puesto', 'ocupacion', 'departamento_area', 'area', 'departamento', 'tipo_documento', 'tipo_doc'

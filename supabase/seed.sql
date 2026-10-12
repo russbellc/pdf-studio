@@ -6,7 +6,8 @@
 INSERT INTO empresas (id, razon_social, identificacion_fiscal, correo_contacto, telefono, direccion)
 VALUES 
     ('e1111111-1111-1111-1111-111111111111', 'Corporación Minera del Sur S.A.C.', '20601234567', 'rrhh@minerasur.pe', '+51 987654321', 'Av. Las Begonias 450, San Isidro'),
-    ('e2222222-2222-2222-2222-222222222222', 'Constructora e Inmobiliaria Andina S.A.', '20509876543', 'admin@andina.com', '+51 912345678', 'Av. Javier Prado Este 2340, Lima')
+    ('e2222222-2222-2222-2222-222222222222', 'Constructora e Inmobiliaria Andina S.A.', '20509876543', 'admin@andina.com', '+51 912345678', 'Av. Javier Prado Este 2340, Lima'),
+    ('e3333333-3333-3333-3333-333333333333', 'University of the People', 'UOP-US-91101', 'payments@uopeople.edu', '+1 626 264 8880', '595E. Colorado Boulevard, Suite 623, Pasadena, CA 91101')
 ON CONFLICT (identificacion_fiscal) DO NOTHING;
 
 -- 2. Insertar Plantilla Global 1: Certificado de Capacitación / Inducción
@@ -152,10 +153,42 @@ INSERT INTO plantillas (
     '{"titulo": "Acta Entrega - {{persona.nombres}} {{persona.apellidos}}", "autor": "{{empresa.razon_social}}", "asunto": "Acta de Entrega de Equipos", "palabras_clave": "acta, epp, recepcion"}'::jsonb
 ) ON CONFLICT (id) DO NOTHING;
 
--- 4. Insertar Personas de Prueba para Empresa 1
-INSERT INTO personas (empresa_id, tipo_documento, numero_documento, nombres, apellidos, correo, telefono, cargo, departamento_area)
+-- 4. Insertar Personas de Prueba para Empresa 1 y UoPeople
+INSERT INTO personas (empresa_id, tipo_documento, numero_documento, nombres, apellidos, correo, telefono, cargo, departamento_area, datos_adicionales)
 VALUES
-    ('e1111111-1111-1111-1111-111111111111', 'DNI', '72345678', 'Carlos Alberto', 'Mendoza Quispe', 'carlos.mendoza@minerasur.pe', '987112233', 'Supervisor de Operaciones', 'Mina'),
-    ('e1111111-1111-1111-1111-111111111111', 'DNI', '45891234', 'María Elena', 'Rosas Gutierrez', 'maria.rosas@minerasur.pe', '976223344', 'Especialista en Seguridad SST', 'Seguridad'),
-    ('e1111111-1111-1111-1111-111111111111', 'DNI', '48123901', 'Jorge Luis', 'Paredes Flores', 'jorge.paredes@minerasur.pe', '955334455', 'Operador de Maquinaria Pesada', 'Mantenimiento')
+    ('e1111111-1111-1111-1111-111111111111', 'DNI', '72345678', 'Carlos Alberto', 'Mendoza Quispe', 'carlos.mendoza@minerasur.pe', '987112233', 'Supervisor de Operaciones', 'Mina', '{}'::jsonb),
+    ('e1111111-1111-1111-1111-111111111111', 'DNI', '45891234', 'María Elena', 'Rosas Gutierrez', 'maria.rosas@minerasur.pe', '976223344', 'Especialista en Seguridad SST', 'Seguridad', '{}'::jsonb),
+    ('e1111111-1111-1111-1111-111111111111', 'DNI', '48123901', 'Jorge Luis', 'Paredes Flores', 'jorge.paredes@minerasur.pe', '955334455', 'Operador de Maquinaria Pesada', 'Mantenimiento', '{}'::jsonb),
+    ('e3333333-3333-3333-3333-333333333333', 'ID', 'UOP-98234', 'Franco', 'Lopez Plaza', 'franco.lopez@your.uopeople.edu', '+51 987654321', 'Estudiante', 'Computer Science', '{
+      "uopeople_id": "UOP-98234",
+      "carrera": "Bachelor of Science in Computer Science",
+      "ano_academico": "2026-2027",
+      "fecha_emision": "10/07/2026",
+      "hora_emision": "10:15 AM",
+      "materia_1_desc": "Programming Fundamentals",
+      "materia_1_fecha": "10/07/2026",
+      "materia_1_metodo": "CREDIT CARD",
+      "materia_1_monto": "$140",
+      "materia_2_desc": "English Composition 2",
+      "materia_2_fecha": "10/07/2026",
+      "materia_2_metodo": "CREDIT CARD",
+      "materia_2_monto": "$140",
+      "materia_3_desc": "Introduction to Computer Science",
+      "materia_3_fecha": "08/15/2026",
+      "materia_3_metodo": "CREDIT CARD",
+      "materia_3_monto": "$140",
+      "materia_4_desc": "Online Education Strategies",
+      "materia_4_fecha": "08/15/2026",
+      "materia_4_metodo": "CREDIT CARD",
+      "materia_4_monto": "$140",
+      "materia_5_desc": "Application fee",
+      "materia_5_fecha": "08/05/2026",
+      "materia_5_metodo": "CREDIT CARD",
+      "materia_5_monto": "$60",
+      "total_charges": "$620",
+      "total_paid": "-$620",
+      "remaining_balance": "$0",
+      "estado_cuenta": "PAID IN FULL • GOOD STANDING",
+      "verification_code": "UOP-TR-2026-98234"
+    }'::jsonb)
 ON CONFLICT (empresa_id, numero_documento) DO NOTHING;
