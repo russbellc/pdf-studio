@@ -9,7 +9,7 @@ COPY tsconfig.json ./
 COPY src/ ./src/
 
 RUN npm run build
-RUN cp src/tailwind-plantillas.css dist/ 2>/dev/null || true
+RUN mkdir -p dist && cp src/tailwind-plantillas.css dist/tailwind-plantillas.css 2>/dev/null || true
 
 EXPOSE 3001
 

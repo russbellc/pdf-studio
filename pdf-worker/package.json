@@ -1,6 +1,7 @@
 {
   "name": "pdf-studio-worker",
   "version": "1.0.0",
+  "type": "module",
   "description": "Microservicio de generación pixel-perfect de PDFs con Playwright y sellado criptográfico con pdf-lib",
   "main": "dist/index.js",
   "scripts": {

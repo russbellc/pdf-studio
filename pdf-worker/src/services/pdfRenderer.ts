@@ -14,10 +14,20 @@ let staticCssCache: string | null = null;
 
 function getStaticCss(): string {
   if (!staticCssCache) {
-    const cssPath = path.resolve(__dirname, '../tailwind-plantillas.css');
-    if (fs.existsSync(cssPath)) {
-      staticCssCache = fs.readFileSync(cssPath, 'utf-8');
-    } else {
+    const candidates = [
+      path.resolve(__dirname, '../tailwind-plantillas.css'),
+      path.resolve(__dirname, './tailwind-plantillas.css'),
+      path.resolve(process.cwd(), 'src/tailwind-plantillas.css'),
+      path.resolve(process.cwd(), 'dist/tailwind-plantillas.css'),
+      path.resolve(process.cwd(), 'tailwind-plantillas.css'),
+    ];
+    for (const c of candidates) {
+      if (fs.existsSync(c)) {
+        staticCssCache = fs.readFileSync(c, 'utf-8');
+        break;
+      }
+    }
+    if (!staticCssCache) {
       staticCssCache = 'body { margin: 0; padding: 0; font-family: sans-serif; }';
     }
   }
