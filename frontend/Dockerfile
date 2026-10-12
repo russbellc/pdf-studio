@@ -4,8 +4,11 @@ WORKDIR /app
 
 RUN apk add --no-cache libc6-compat
 
+ENV NODE_ENV=development
+
 COPY package*.json ./
-RUN npm install
+RUN npm install --include=dev
+RUN npm install --save-optional @rollup/rollup-linux-x64-musl
 
 COPY . .
 RUN npm run build
