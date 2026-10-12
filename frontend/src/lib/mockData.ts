@@ -21,6 +21,16 @@ export const INITIAL_EMPRESAS: Empresa[] = [
     activo: true,
     created_at: new Date().toISOString(),
   },
+  {
+    id: 'e3333333-3333-3333-3333-333333333333',
+    razon_social: 'University of the People',
+    identificacion_fiscal: 'UOP-US-91101',
+    correo_contacto: 'payments@uopeople.edu',
+    telefono: '+1 626 264 8880',
+    direccion: '595E. Colorado Boulevard, Suite 623, Pasadena, CA 91101',
+    activo: true,
+    created_at: new Date().toISOString(),
+  },
 ];
 
 export const INITIAL_PLANTILLAS: Plantilla[] = [

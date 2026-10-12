@@ -5,10 +5,10 @@ WORKDIR /app
 ENV NODE_ENV=development
 
 COPY package.json ./
-RUN npm install
+RUN npm install --include=dev
 
 COPY . .
-RUN npm run build
+RUN npm run build || (echo "=== VITE BUILD FAILED ===" && ./node_modules/.bin/vite build --debug && exit 1)
 
 FROM nginx:alpine
 
