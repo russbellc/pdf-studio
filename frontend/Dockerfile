@@ -1,14 +1,21 @@
-FROM node:22-bookworm-slim AS builder
+FROM node:22 AS builder
 
 WORKDIR /app
 
 ENV NODE_ENV=development
 
 COPY package.json ./
-RUN npm install --include=dev
+RUN npm install --include=dev --include=optional
 
-COPY . .
-RUN npm run build || (echo "=== VITE BUILD FAILED ===" && ./node_modules/.bin/vite build --debug && exit 1)
+COPY index.html ./
+COPY vite.config.ts ./
+COPY tsconfig.json ./
+COPY postcss.config.js ./
+COPY tailwind.config.js ./
+COPY public/ ./public/
+COPY src/ ./src/
+
+RUN npx vite build
 
 FROM nginx:alpine
 
