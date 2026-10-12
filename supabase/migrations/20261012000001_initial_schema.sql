@@ -24,9 +24,9 @@ CREATE TABLE IF NOT EXISTS empresas (
 
 -- 2. TABLA: PERSONAS (Aisladas por Empresa)
 CREATE TABLE IF NOT EXISTS personas (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     empresa_id UUID NOT NULL REFERENCES empresas(id) ON DELETE CASCADE,
-    tipo_documento TEXT NOT NULL DEFAULT 'DNI', -- DNI, CE, PASAPORTE
+    tipo_documento TEXT NOT NULL DEFAULT 'DNI', -- DNI, CE, PASAPORTE, ID
     numero_documento TEXT NOT NULL,
     nombres TEXT NOT NULL,
     apellidos TEXT NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS personas (
 
 -- 3. TABLA: PLANTILLAS (Globales o Propias de Empresa)
 CREATE TABLE IF NOT EXISTS plantillas (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     empresa_id UUID REFERENCES empresas(id) ON DELETE CASCADE, -- NULL si es_global = true
     es_global BOOLEAN DEFAULT false,
     nombre TEXT NOT NULL,
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS plantillas (
         "asunto": "Documento Oficial emitido",
         "palabras_clave": "oficial, certificado, pdf"
     }'::jsonb,
-    plantilla_origen_id UUID REFERENCES plantillas(id) ON DELETE SET NULL, -- Trazabilidad de plantillas clonadas
+    plantilla_origen_id TEXT REFERENCES plantillas(id) ON DELETE SET NULL, -- Trazabilidad de plantillas clonadas
     activo BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -67,10 +67,10 @@ CREATE TABLE IF NOT EXISTS plantillas (
 
 -- 4. TABLA: DOCUMENTOS GENERADOS POR PERSONA
 CREATE TABLE IF NOT EXISTS documentos_generados (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     empresa_id UUID NOT NULL REFERENCES empresas(id) ON DELETE CASCADE,
-    persona_id UUID NOT NULL REFERENCES personas(id) ON DELETE CASCADE,
-    plantilla_id UUID REFERENCES plantillas(id) ON DELETE SET NULL,
+    persona_id TEXT NOT NULL REFERENCES personas(id) ON DELETE CASCADE,
+    plantilla_id TEXT REFERENCES plantillas(id) ON DELETE SET NULL,
     nombre_archivo TEXT NOT NULL,
     storage_path TEXT NOT NULL, -- Ruta dentro del bucket de Supabase Storage
     hash_sha256 TEXT NOT NULL, -- Huella criptográfica del archivo
