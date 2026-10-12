@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  pdf-worker:
+    build:
+      context: ./pdf-worker
+      dockerfile: Dockerfile
+    container_name: pdf_studio_worker
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+    volumes:
+      - ./pdf-worker/src/tailwind-plantillas.css:/app/dist/tailwind-plantillas.css:ro
