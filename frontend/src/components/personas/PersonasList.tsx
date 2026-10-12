@@ -1,6 +1,22 @@
 import React, { useState } from 'react';
 import { Persona, Empresa } from '../../types/database';
-import { Users, FileSpreadsheet, Plus, Search, Printer, Mail, Phone, Briefcase } from 'lucide-react';
+import {
+  Users,
+  FileSpreadsheet,
+  Plus,
+  Search,
+  Printer,
+  Mail,
+  Phone,
+  Briefcase,
+  GraduationCap,
+  Eye,
+  Calendar,
+  ShieldCheck,
+  CreditCard,
+  X,
+  FileText
+} from 'lucide-react';
 import { ExcelImporterModal } from './ExcelImporterModal';
 
 interface PersonasListProps {
@@ -23,9 +39,10 @@ export const PersonasList: React.FC<PersonasListProps> = ({
   const [busqueda, setBusqueda] = useState('');
   const [modalImportarAbierto, setModalImportarAbierto] = useState(false);
   const [modalCrearAbierto, setModalCrearAbierto] = useState(false);
+  const [personaDetalle, setPersonaDetalle] = useState<Persona | null>(null);
 
-  const [formData, setFormData] = useState<Partial<Persona>>({
-    tipo_documento: 'DNI',
+  const [formData, setFormData] = useState<Partial<Persona> & { extraFields?: Record<string, string> }>({
+    tipo_documento: 'ID',
     numero_documento: '',
     nombres: '',
     apellidos: '',
@@ -33,6 +50,16 @@ export const PersonasList: React.FC<PersonasListProps> = ({
     telefono: '',
     cargo: '',
     departamento_area: '',
+    extraFields: {
+      carrera: '',
+      ano_academico: '',
+      uopeople_id: '',
+      verification_code: '',
+      total_charges: '',
+      total_paid: '',
+      remaining_balance: '',
+      estado_cuenta: '',
+    },
   });
 
   // Filtrar personas por empresa seleccionada
@@ -42,7 +69,9 @@ export const PersonasList: React.FC<PersonasListProps> = ({
       p.numero_documento.includes(busqueda) ||
       p.nombres.toLowerCase().includes(busqueda.toLowerCase()) ||
       p.apellidos.toLowerCase().includes(busqueda.toLowerCase()) ||
-      (p.cargo && p.cargo.toLowerCase().includes(busqueda.toLowerCase()));
+      (p.cargo && p.cargo.toLowerCase().includes(busqueda.toLowerCase())) ||
+      (p.datos_adicionales?.carrera && String(p.datos_adicionales.carrera).toLowerCase().includes(busqueda.toLowerCase())) ||
+      (p.datos_adicionales?.uopeople_id && String(p.datos_adicionales.uopeople_id).toLowerCase().includes(busqueda.toLowerCase()));
     return coincideEmpresa && coincideBusqueda;
   });
 
@@ -60,15 +89,31 @@ export const PersonasList: React.FC<PersonasListProps> = ({
         ? selectedEmpresaId
         : empresas[0]?.id || 'e1111111-1111-1111-1111-111111111111';
 
+    // Limpiar extraFields vacíos
+    const cleanExtra: Record<string, any> = {};
+    if (formData.extraFields) {
+      Object.entries(formData.extraFields).forEach(([k, v]) => {
+        if (v && v.trim()) cleanExtra[k] = v.trim();
+      });
+    }
+
     onCrearPersona({
-      ...formData,
+      tipo_documento: formData.tipo_documento || 'ID',
+      numero_documento: formData.numero_documento,
+      nombres: formData.nombres,
+      apellidos: formData.apellidos || '',
+      correo: formData.correo || '',
+      telefono: formData.telefono || '',
+      cargo: formData.cargo || '',
+      departamento_area: formData.departamento_area || '',
+      datos_adicionales: cleanExtra,
       empresa_id: empId,
       activo: true,
     });
 
     setModalCrearAbierto(false);
     setFormData({
-      tipo_documento: 'DNI',
+      tipo_documento: 'ID',
       numero_documento: '',
       nombres: '',
       apellidos: '',
@@ -76,6 +121,16 @@ export const PersonasList: React.FC<PersonasListProps> = ({
       telefono: '',
       cargo: '',
       departamento_area: '',
+      extraFields: {
+        carrera: '',
+        ano_academico: '',
+        uopeople_id: '',
+        verification_code: '',
+        total_charges: '',
+        total_paid: '',
+        remaining_balance: '',
+        estado_cuenta: '',
+      },
     });
   };
 
@@ -86,7 +141,7 @@ export const PersonasList: React.FC<PersonasListProps> = ({
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">Directorio de Personas</h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Empleados y colaboradores registrados por empresa. Puedes generar documentos individuales por persona.
+            Estudiantes, colaboradores y empleados registrados con sus datos dinámicos listos para inyección en plantillas PDF.
           </p>
         </div>
 
@@ -115,7 +170,7 @@ export const PersonasList: React.FC<PersonasListProps> = ({
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Buscar por DNI, nombres, apellidos o cargo..."
+            placeholder="Buscar por ID/DNI, nombres, apellidos, carrera o cargo..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             className="w-full text-xs bg-white border border-slate-300 rounded-lg pl-10 pr-4 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
@@ -123,7 +178,7 @@ export const PersonasList: React.FC<PersonasListProps> = ({
         </div>
 
         <div className="text-xs text-slate-500">
-          Mostrando <span className="font-bold text-slate-800">{personasFiltradas.length}</span> personas registradas
+          Mostrando <span className="font-bold text-slate-800">{personasFiltradas.length}</span> registros
         </div>
       </div>
 
@@ -133,67 +188,92 @@ export const PersonasList: React.FC<PersonasListProps> = ({
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-200">
               <tr>
-                <th className="py-3 px-4">Documento / DNI</th>
+                <th className="py-3 px-4">Documento / ID</th>
                 <th className="py-3 px-4">Apellidos y Nombres</th>
-                <th className="py-3 px-4">Empresa</th>
-                <th className="py-3 px-4">Cargo / Área</th>
-                <th className="py-3 px-4">Contacto</th>
+                <th className="py-3 px-4">Empresa / Institución</th>
+                <th className="py-3 px-4">Carrera / Cargo / Área</th>
+                <th className="py-3 px-4">Datos para Plantilla</th>
                 <th className="py-3 px-4 text-right">Acción Individual</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
-              {personasFiltradas.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="py-3 px-4 font-mono font-bold text-slate-900">
-                    <span className="inline-block px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-[11px]">
-                      {p.tipo_documento}: {p.numero_documento}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="font-semibold text-slate-900">
-                      {p.apellidos}, {p.nombres}
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="text-[11px] text-slate-600 truncate max-w-[180px] block font-medium">
-                      {getNombreEmpresa(p.empresa_id)}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-1.5 text-slate-700">
-                      <Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>{p.cargo || 'Sin cargo'}</span>
-                    </div>
-                    {p.departamento_area && (
-                      <span className="text-[10px] text-slate-400 block">{p.departamento_area}</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 space-y-0.5 text-[11px] text-slate-500">
-                    {p.correo && (
-                      <div className="flex items-center gap-1.5">
-                        <Mail className="w-3 h-3 text-slate-400" />
-                        <span>{p.correo}</span>
+              {personasFiltradas.map((p) => {
+                const totalExtras = p.datos_adicionales ? Object.keys(p.datos_adicionales).length : 0;
+                const tieneCarrera = Boolean(p.datos_adicionales?.carrera);
+
+                return (
+                  <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                      <span className="inline-block px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-[11px]">
+                        {p.tipo_documento}: {p.numero_documento}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="font-semibold text-slate-900">
+                        {p.apellidos}, {p.nombres}
                       </div>
-                    )}
-                    {p.telefono && (
-                      <div className="flex items-center gap-1.5">
-                        <Phone className="w-3 h-3 text-slate-400" />
-                        <span>{p.telefono}</span>
-                      </div>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <button
-                      onClick={() => onLanzarGenerador(p)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 transition-all shadow-sm"
-                      title="Generar PDF para este registro"
-                    >
-                      <Printer className="w-3.5 h-3.5" />
-                      Emitir PDF
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                      {p.correo && (
+                        <span className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
+                          <Mail className="w-2.5 h-2.5" /> {p.correo}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="text-[11px] text-slate-600 truncate max-w-[180px] block font-medium">
+                        {getNombreEmpresa(p.empresa_id)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      {tieneCarrera ? (
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1.5 text-purple-700 font-semibold text-[11px]">
+                            <GraduationCap className="w-3.5 h-3.5 shrink-0" />
+                            <span className="truncate max-w-[200px]">{p.datos_adicionales.carrera}</span>
+                          </div>
+                          {p.datos_adicionales.ano_academico && (
+                            <span className="text-[10px] text-slate-500 block">
+                              Periodo: {p.datos_adicionales.ano_academico}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="flex items-center gap-1.5 text-slate-700">
+                            <Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span>{p.cargo || 'Sin cargo'}</span>
+                          </div>
+                          {p.departamento_area && (
+                            <span className="text-[10px] text-slate-400 block">{p.departamento_area}</span>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      {totalExtras > 0 ? (
+                        <button
+                          onClick={() => setPersonaDetalle(p)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 transition-colors shadow-2xs"
+                        >
+                          <Eye className="w-3 h-3" />
+                          <span>{totalExtras} variables dinámicas</span>
+                        </button>
+                      ) : (
+                        <span className="text-[11px] text-slate-400 italic">Campos estándar</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-right space-x-1">
+                      <button
+                        onClick={() => onLanzarGenerador(p)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 transition-all shadow-sm"
+                        title="Generar PDF para este registro con sus variables"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        Emitir PDF
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
 
               {personasFiltradas.length === 0 && (
                 <tr>
@@ -211,6 +291,151 @@ export const PersonasList: React.FC<PersonasListProps> = ({
         </div>
       </div>
 
+      {/* Modal Detalle de Variables de la Persona para Plantillas */}
+      {personaDetalle && (
+        <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-3 mb-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-purple-600" />
+                  Datos y Variables de Plantilla: {personaDetalle.nombres} {personaDetalle.apellidos}
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Estos son los valores que se inyectan automáticamente en las etiquetas de los documentos PDF.
+                </p>
+              </div>
+              <button
+                onClick={() => setPersonaDetalle(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Resumen principal */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-purple-50/50 rounded-xl border border-purple-100 text-xs mb-4">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Identificación</span>
+                <span className="font-mono font-bold text-slate-800">{personaDetalle.tipo_documento}: {personaDetalle.numero_documento}</span>
+              </div>
+              {personaDetalle.datos_adicionales?.carrera && (
+                <div className="col-span-2">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Carrera / Programa</span>
+                  <span className="font-bold text-purple-900">{personaDetalle.datos_adicionales.carrera}</span>
+                </div>
+              )}
+              {personaDetalle.datos_adicionales?.ano_academico && (
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Año Académico</span>
+                  <span className="font-semibold text-slate-800">{personaDetalle.datos_adicionales.ano_academico}</span>
+                </div>
+              )}
+              {personaDetalle.datos_adicionales?.verification_code && (
+                <div className="col-span-2">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Verification Code</span>
+                  <span className="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-purple-200 inline-block">
+                    {personaDetalle.datos_adicionales.verification_code}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Tabla de Materias / Transacciones si existen */}
+            {personaDetalle.datos_adicionales?.materia_1_desc && (
+              <div className="mb-4">
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  Materias / Transacciones Académicas Vinculadas
+                </h4>
+                <div className="border border-slate-200 rounded-lg overflow-hidden">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 text-[10px] uppercase text-slate-500 font-bold border-b border-slate-200">
+                      <tr>
+                        <th className="py-2 px-3">Descripción</th>
+                        <th className="py-2 px-3">Fecha</th>
+                        <th className="py-2 px-3">Método</th>
+                        <th className="py-2 px-3 text-right">Monto</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-slate-700">
+                      {[1, 2, 3, 4, 5].map((i) => {
+                        const desc = personaDetalle.datos_adicionales?.[`materia_${i}_desc`];
+                        const fecha = personaDetalle.datos_adicionales?.[`materia_${i}_fecha`];
+                        const metodo = personaDetalle.datos_adicionales?.[`materia_${i}_metodo`];
+                        const monto = personaDetalle.datos_adicionales?.[`materia_${i}_monto`];
+                        if (!desc) return null;
+                        return (
+                          <tr key={i}>
+                            <td className="py-2 px-3 font-medium text-slate-800">{desc}</td>
+                            <td className="py-2 px-3 text-slate-600">{fecha}</td>
+                            <td className="py-2 px-3 text-slate-600">{metodo}</td>
+                            <td className="py-2 px-3 text-right font-bold text-slate-900">{monto}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    {(personaDetalle.datos_adicionales?.total_charges || personaDetalle.datos_adicionales?.total_paid) && (
+                      <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
+                        <tr>
+                          <td colSpan={3} className="py-1.5 px-3 text-right">Total Charges:</td>
+                          <td className="py-1.5 px-3 text-right text-slate-900">{personaDetalle.datos_adicionales.total_charges}</td>
+                        </tr>
+                        <tr>
+                          <td colSpan={3} className="py-1.5 px-3 text-right">Total Paid:</td>
+                          <td className="py-1.5 px-3 text-right text-slate-900">{personaDetalle.datos_adicionales.total_paid}</td>
+                        </tr>
+                        <tr>
+                          <td colSpan={3} className="py-1.5 px-3 text-right">Remaining Balance:</td>
+                          <td className="py-1.5 px-3 text-right text-emerald-600">{personaDetalle.datos_adicionales.remaining_balance}</td>
+                        </tr>
+                      </tfoot>
+                    )}
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Listado completo de variables crudas */}
+            <div>
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Todas las Variables Disponibles para Inyección en Plantillas
+              </h4>
+              <div className="max-h-40 overflow-y-auto bg-slate-50 rounded-lg p-3 border border-slate-200 space-y-1 font-mono text-[11px]">
+                {personaDetalle.datos_adicionales &&
+                  Object.entries(personaDetalle.datos_adicionales).map(([k, v]) => (
+                    <div key={k} className="flex justify-between items-center py-0.5 border-b border-slate-100 last:border-0">
+                      <span className="text-purple-700 font-semibold">{`{{persona.extra.${k}}}`}</span>
+                      <span className="text-slate-800 font-medium truncate max-w-[260px]">{String(v)}</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="pt-4 mt-4 flex justify-end gap-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setPersonaDetalle(null)}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 rounded-lg transition-colors"
+              >
+                Cerrar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const p = personaDetalle;
+                  setPersonaDetalle(null);
+                  onLanzarGenerador(p);
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white rounded-lg shadow-sm transition-all"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                Ir a Emitir Documento
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal Importar Excel */}
       {modalImportarAbierto && (
         <ExcelImporterModal
@@ -227,9 +452,9 @@ export const PersonasList: React.FC<PersonasListProps> = ({
       {/* Modal Crear Persona Manual */}
       {modalCrearAbierto && (
         <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
             <h3 className="text-base font-bold text-slate-900 mb-1">Registrar Persona</h3>
-            <p className="text-xs text-slate-500 mb-4">Ingresa los datos personales del colaborador.</p>
+            <p className="text-xs text-slate-500 mb-4">Ingresa los datos personales y académicos para las plantillas.</p>
 
             <form onSubmit={guardarPersona} className="space-y-3.5">
               <div className="grid grid-cols-3 gap-3">
@@ -240,19 +465,27 @@ export const PersonasList: React.FC<PersonasListProps> = ({
                     onChange={(e) => setFormData({ ...formData, tipo_documento: e.target.value })}
                     className="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   >
+                    <option value="ID">ID</option>
                     <option value="DNI">DNI</option>
                     <option value="CE">Carnet Ext.</option>
                     <option value="PASAPORTE">Pasaporte</option>
                   </select>
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Número de Documento *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Número de Documento / ID *</label>
                   <input
                     type="text"
                     required
-                    placeholder="72345678"
+                    placeholder="UOP-98234 o 72345678"
                     value={formData.numero_documento || ''}
-                    onChange={(e) => setFormData({ ...formData, numero_documento: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData({
+                        ...formData,
+                        numero_documento: val,
+                        extraFields: { ...formData.extraFields, uopeople_id: val }
+                      });
+                    }}
                     className="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-teal-500"
                   />
                 </div>
@@ -264,7 +497,7 @@ export const PersonasList: React.FC<PersonasListProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="Juan Carlos"
+                    placeholder="Franco"
                     value={formData.nombres || ''}
                     onChange={(e) => setFormData({ ...formData, nombres: e.target.value })}
                     className="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -275,7 +508,7 @@ export const PersonasList: React.FC<PersonasListProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="Perez Flores"
+                    placeholder="Lopez Plaza"
                     value={formData.apellidos || ''}
                     onChange={(e) => setFormData({ ...formData, apellidos: e.target.value })}
                     className="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -283,12 +516,68 @@ export const PersonasList: React.FC<PersonasListProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {/* Sección de Campos Académicos / Dinámicos */}
+              <div className="p-3 bg-purple-50/60 rounded-xl border border-purple-100 space-y-2.5">
+                <span className="text-[11px] font-bold text-purple-900 uppercase tracking-wider block">
+                  Datos Académicos para Plantillas (Opcional)
+                </span>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Cargo / Puesto</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Carrera / Programa</label>
                   <input
                     type="text"
-                    placeholder="Supervisor SST"
+                    placeholder="Bachelor of Science in Computer Science"
+                    value={formData.extraFields?.carrera || ''}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        cargo: e.target.value ? 'Estudiante' : formData.cargo,
+                        extraFields: { ...formData.extraFields, carrera: e.target.value }
+                      })
+                    }
+                    className="w-full text-xs bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Año Académico</label>
+                    <input
+                      type="text"
+                      placeholder="2026-2027"
+                      value={formData.extraFields?.ano_academico || ''}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          extraFields: { ...formData.extraFields, ano_academico: e.target.value }
+                        })
+                      }
+                      className="w-full text-xs bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Código Verificación</label>
+                    <input
+                      type="text"
+                      placeholder="UOP-TR-2026-98234"
+                      value={formData.extraFields?.verification_code || ''}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          extraFields: { ...formData.extraFields, verification_code: e.target.value }
+                        })
+                      }
+                      className="w-full text-xs bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Cargo / Ocupación</label>
+                  <input
+                    type="text"
+                    placeholder="Estudiante o Supervisor"
                     value={formData.cargo || ''}
                     onChange={(e) => setFormData({ ...formData, cargo: e.target.value })}
                     className="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -298,7 +587,7 @@ export const PersonasList: React.FC<PersonasListProps> = ({
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Área o Departamento</label>
                   <input
                     type="text"
-                    placeholder="Operaciones"
+                    placeholder="Computer Science o Mina"
                     value={formData.departamento_area || ''}
                     onChange={(e) => setFormData({ ...formData, departamento_area: e.target.value })}
                     className="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -311,7 +600,7 @@ export const PersonasList: React.FC<PersonasListProps> = ({
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Correo Electrónico</label>
                   <input
                     type="email"
-                    placeholder="juan@empresa.com"
+                    placeholder="correo@ejemplo.edu"
                     value={formData.correo || ''}
                     onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
                     className="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -321,7 +610,7 @@ export const PersonasList: React.FC<PersonasListProps> = ({
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Teléfono</label>
                   <input
                     type="text"
-                    placeholder="987654321"
+                    placeholder="+51 987654321"
                     value={formData.telefono || ''}
                     onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                     className="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"

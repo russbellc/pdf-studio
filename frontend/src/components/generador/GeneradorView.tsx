@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Empresa, Persona, Plantilla, DocumentoGenerado } from '../../types/database';
-import { Printer, Eye, CheckCircle2, FileDown, ShieldCheck, RefreshCw, Archive } from 'lucide-react';
+import {
+  Printer,
+  Eye,
+  CheckCircle2,
+  FileDown,
+  ShieldCheck,
+  RefreshCw,
+  Archive,
+  GraduationCap,
+  Calendar,
+  Key,
+  FileText,
+  CreditCard
+} from 'lucide-react';
 
 interface GeneradorViewProps {
   empresas: Empresa[];
@@ -30,6 +43,24 @@ export const GeneradorView: React.FC<GeneradorViewProps> = ({
   const [plantillaSeleccionadaId, setPlantillaSeleccionadaId] = useState(
     plantillaInicial ? plantillaInicial.id : plantillas[0]?.id || ''
   );
+
+  // Sincronizar si cambia personaInicial desde el exterior
+  useEffect(() => {
+    if (personaInicial) {
+      setEmpresaId(personaInicial.empresa_id);
+      setPersonaSeleccionadaId(personaInicial.id);
+    }
+  }, [personaInicial]);
+
+  // Sincronizar si cambia plantillaInicial desde el exterior
+  useEffect(() => {
+    if (plantillaInicial) {
+      if (plantillaInicial.empresa_id) {
+        setEmpresaId(plantillaInicial.empresa_id);
+      }
+      setPlantillaSeleccionadaId(plantillaInicial.id);
+    }
+  }, [plantillaInicial]);
 
   // Modo lote: selección de múltiples personas
   const [personasLoteIds, setPersonasLoteIds] = useState<string[]>([]);
@@ -360,6 +391,56 @@ export const GeneradorView: React.FC<GeneradorViewProps> = ({
                     <option disabled>No hay personas en esta empresa</option>
                   )}
                 </select>
+
+                {/* Panel de Datos Dinámicos / Académicos de la Persona */}
+                {personaActiva?.datos_adicionales && Object.keys(personaActiva.datos_adicionales).length > 0 && (
+                  <div className="mt-2.5 p-3 bg-purple-50/70 border border-purple-200/80 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-purple-900 flex items-center gap-1">
+                        <GraduationCap className="w-3.5 h-3.5 text-purple-700" />
+                        Datos para plantilla ({{persona.extra.*}})
+                      </span>
+                      <span className="text-[10px] bg-purple-200/70 text-purple-800 font-bold px-1.5 py-0.5 rounded">
+                        {Object.keys(personaActiva.datos_adicionales).length} campos
+                      </span>
+                    </div>
+
+                    {/* Resumen de campos clave */}
+                    <div className="grid grid-cols-2 gap-1.5 text-[11px] text-slate-700">
+                      {personaActiva.datos_adicionales.carrera && (
+                        <div className="col-span-2 bg-white/80 p-1.5 rounded border border-purple-100">
+                          <span className="text-[9px] uppercase font-bold text-slate-400 block">Carrera / Programa</span>
+                          <span className="font-semibold text-purple-950 truncate block">{personaActiva.datos_adicionales.carrera}</span>
+                        </div>
+                      )}
+                      {personaActiva.datos_adicionales.ano_academico && (
+                        <div className="bg-white/80 p-1.5 rounded border border-purple-100">
+                          <span className="text-[9px] uppercase font-bold text-slate-400 block">Año Académico</span>
+                          <span className="font-semibold text-slate-800">{personaActiva.datos_adicionales.ano_academico}</span>
+                        </div>
+                      )}
+                      {personaActiva.datos_adicionales.uopeople_id && (
+                        <div className="bg-white/80 p-1.5 rounded border border-purple-100">
+                          <span className="text-[9px] uppercase font-bold text-slate-400 block">ID Registrado</span>
+                          <span className="font-mono font-bold text-slate-800">{personaActiva.datos_adicionales.uopeople_id}</span>
+                        </div>
+                      )}
+                      {personaActiva.datos_adicionales.verification_code && (
+                        <div className="col-span-2 bg-white/80 p-1.5 rounded border border-purple-100">
+                          <span className="text-[9px] uppercase font-bold text-slate-400 block">Verification Code</span>
+                          <span className="font-mono font-bold text-purple-900">{personaActiva.datos_adicionales.verification_code}</span>
+                        </div>
+                      )}
+                      {(personaActiva.datos_adicionales.total_charges || personaActiva.datos_adicionales.remaining_balance) && (
+                        <div className="col-span-2 flex justify-between bg-white/80 p-1.5 rounded border border-purple-100 text-[10px]">
+                          <span>Cargos: <strong>{personaActiva.datos_adicionales.total_charges || '-'}</strong></span>
+                          <span>Pagado: <strong>{personaActiva.datos_adicionales.total_paid || '-'}</strong></span>
+                          <span className="text-emerald-700 font-bold">Balance: {personaActiva.datos_adicionales.remaining_balance || '$0'}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               /* Modo Lote: Selección múltiple con checkboxes */
