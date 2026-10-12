@@ -99,6 +99,28 @@ export const ExcelImporterModal: React.FC<ExcelImporterModalProps> = ({
             </select>
           </div>
 
+          {/* Enlace para descargar plantilla de ejemplo */}
+          <div className="flex items-center justify-between text-xs text-slate-500 mb-2 px-1">
+            <span>¿Necesitas una plantilla de ejemplo con 50 registros?</span>
+            <div className="flex items-center gap-3">
+              <a
+                href="/plantilla_estudiantes_uopeople_v1.xlsx"
+                download="plantilla_estudiantes_uopeople_v1.xlsx"
+                className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:text-emerald-800 hover:underline"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                Descargar .xlsx
+              </a>
+              <a
+                href="/plantilla_estudiantes_uopeople_v1.csv"
+                download="plantilla_estudiantes_uopeople_v1.csv"
+                className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:text-emerald-800 hover:underline"
+              >
+                Descargar .csv
+              </a>
+            </div>
+          </div>
+
           {/* Zona de Drop / Carga de archivo */}
           {!resultado && (
             <label className="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-colors bg-slate-50/50 hover:bg-emerald-50/20 my-4">

@@ -21,6 +21,44 @@ function normalizarClave(texto: string): string {
 }
 
 /**
+ * Normaliza y formatea valores provenientes de celdas de Excel.
+ * Maneja números de serie de fecha de Excel (ej: 46213 -> 07/10/2026)
+ * y números de hora decimal (ej: 0.427083 -> 10:15:00 AM).
+ */
+function formatearValorExcel(colKey: string, val: any): string {
+  if (val === null || val === undefined) return '';
+  const str = String(val).trim();
+
+  // Si la columna es de fecha y es un número serial de Excel (ej: 46213)
+  if ((colKey.includes('fecha') || colKey.includes('date')) && /^\d+(\.0+)?$/.test(str)) {
+    const num = parseFloat(str);
+    if (num > 25000 && num < 65000) {
+      const date = new Date(Math.round((num - 25569) * 86400 * 1000));
+      if (!isNaN(date.getTime())) {
+        const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const dd = String(date.getUTCDate()).padStart(2, '0');
+        const yyyy = date.getUTCFullYear();
+        return `${mm}/${dd}/${yyyy}`;
+      }
+    }
+  }
+
+  // Si la columna es de hora y es una fracción decimal de día (ej: 0.427083)
+  if ((colKey.includes('hora') || colKey.includes('time')) && /^0\.\d+$/.test(str)) {
+    const frac = parseFloat(str);
+    const totalSeconds = Math.round(frac * 86400);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const period = hours < 12 ? 'AM' : 'PM';
+    const h12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+    return `${String(h12).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} ${period}`;
+  }
+
+  return str;
+}
+
+/**
  * Parsea un archivo Excel (.xlsx, .xls) o CSV y extrae la lista de personas para la empresa seleccionada.
  */
 export async function parsearExcelPersonas(
@@ -47,7 +85,7 @@ export async function parsearExcelPersonas(
 
     Object.entries(row).forEach(([colName, val]) => {
       const cleanCol = normalizarClave(colName);
-      normalizedRow[cleanCol] = String(val).trim();
+      normalizedRow[cleanCol] = formatearValorExcel(cleanCol, val);
       columnasDetectadas.add(colName);
     });
 
