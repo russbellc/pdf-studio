@@ -1,14 +1,11 @@
-FROM node:22-alpine AS builder
+FROM node:22-bookworm-slim AS builder
 
 WORKDIR /app
 
-RUN apk add --no-cache libc6-compat
-
 ENV NODE_ENV=development
 
-COPY package*.json ./
-RUN npm install --include=dev
-RUN npm install --save-optional @rollup/rollup-linux-x64-musl
+COPY package.json ./
+RUN npm install
 
 COPY . .
 RUN npm run build
