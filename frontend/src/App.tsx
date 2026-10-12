@@ -12,25 +12,58 @@ import { GeneradorView } from './components/generador/GeneradorView';
 import { HistorialDocs } from './components/generador/HistorialDocs';
 
 export const App: React.FC = () => {
-  // Estado de datos con persistencia en localStorage
+  // Estado de datos con persistencia en localStorage y sincronización de registros iniciales
   const [empresas, setEmpresas] = useState<Empresa[]>(() => {
     const saved = localStorage.getItem('pdf_studio_empresas');
-    return saved ? JSON.parse(saved) : INITIAL_EMPRESAS;
+    if (!saved) return INITIAL_EMPRESAS;
+    try {
+      const parsed: Empresa[] = JSON.parse(saved);
+      const existingIds = new Set(parsed.map((e) => e.id));
+      const faltantes = INITIAL_EMPRESAS.filter((e) => !existingIds.has(e.id));
+      return [...parsed, ...faltantes];
+    } catch {
+      return INITIAL_EMPRESAS;
+    }
   });
 
   const [personas, setPersonas] = useState<Persona[]>(() => {
     const saved = localStorage.getItem('pdf_studio_personas');
-    return saved ? JSON.parse(saved) : INITIAL_PERSONAS;
+    if (!saved) return INITIAL_PERSONAS;
+    try {
+      const parsed: Persona[] = JSON.parse(saved);
+      const existingIds = new Set(parsed.map((p) => p.id));
+      const faltantes = INITIAL_PERSONAS.filter((p) => !existingIds.has(p.id));
+      return [...parsed, ...faltantes];
+    } catch {
+      return INITIAL_PERSONAS;
+    }
   });
 
   const [plantillas, setPlantillas] = useState<Plantilla[]>(() => {
     const saved = localStorage.getItem('pdf_studio_plantillas');
-    return saved ? JSON.parse(saved) : INITIAL_PLANTILLAS;
+    if (!saved) return INITIAL_PLANTILLAS;
+    try {
+      const parsed: Plantilla[] = JSON.parse(saved);
+      const existingIds = new Set(parsed.map((p) => p.id));
+      const faltantes = INITIAL_PLANTILLAS.filter((p) => !existingIds.has(p.id));
+      // Sincronizar plantillas del sistema con la versión más reciente
+      const actualizadas = parsed.map((p) => {
+        const init = INITIAL_PLANTILLAS.find((ip) => ip.id === p.id);
+        return init ? init : p;
+      });
+      return [...actualizadas, ...faltantes];
+    } catch {
+      return INITIAL_PLANTILLAS;
+    }
   });
 
   const [documentos, setDocumentos] = useState<DocumentoGenerado[]>(() => {
     const saved = localStorage.getItem('pdf_studio_documentos');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
 
   // Persistencia automática
