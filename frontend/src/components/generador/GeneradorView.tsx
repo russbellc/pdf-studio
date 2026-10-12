@@ -398,7 +398,7 @@ export const GeneradorView: React.FC<GeneradorViewProps> = ({
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-purple-900 flex items-center gap-1">
                         <GraduationCap className="w-3.5 h-3.5 text-purple-700" />
-                        Datos para plantilla ({{persona.extra.*}})
+                        Datos para plantilla &#40;&#123;&#123;persona.extra.*&#125;&#125;&#41;
                       </span>
                       <span className="text-[10px] bg-purple-200/70 text-purple-800 font-bold px-1.5 py-0.5 rounded">
                         {Object.keys(personaActiva.datos_adicionales).length} campos
