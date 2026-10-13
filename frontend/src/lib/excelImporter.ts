@@ -138,6 +138,27 @@ export async function parsearExcelPersonas(
     if (normalizedRow['uopeople_id']) {
       datosAdicionales['uopeople_id'] = normalizedRow['uopeople_id'];
     }
+    if (correo) {
+      datosAdicionales['correo'] = correo;
+    }
+    if (normalizedRow['fecha_nacimiento']) {
+      datosAdicionales['fecha_nacimiento'] = normalizedRow['fecha_nacimiento'];
+    }
+    if (normalizedRow['pass'] || normalizedRow['password'] || normalizedRow['contrasena']) {
+      datosAdicionales['pass'] = normalizedRow['pass'] || normalizedRow['password'] || normalizedRow['contrasena'];
+    }
+
+    // Auto-calcular fecha_emision_corta si no vino explícitamente pero hay fecha_emision
+    if (normalizedRow['fecha_emision'] && !normalizedRow['fecha_emision_corta']) {
+      const p = String(normalizedRow['fecha_emision']).split('/');
+      if (p.length === 3) {
+        const m = parseInt(p[0], 10);
+        const d = parseInt(p[1], 10);
+        const y = p[2].slice(-2);
+        datosAdicionales['fecha_emision_corta'] = `${m}/${d}/${y}`;
+      }
+    }
+
     const clavesMapeadas = [
       'dni', 'numero_documento', 'documento', 'nro_documento', 'nro_doc', 'cedula', 'rut', 'id',
       'nombres', 'nombre', 'apellidos', 'apellido', 'apellidos_y_nombres', 'nombres_y_apellidos',

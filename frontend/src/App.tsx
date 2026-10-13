@@ -33,7 +33,19 @@ export const App: React.FC = () => {
       const parsed: Persona[] = JSON.parse(saved);
       const existingIds = new Set(parsed.map((p) => p.id));
       const faltantes = INITIAL_PERSONAS.filter((p) => !existingIds.has(p.id));
-      return [...parsed, ...faltantes];
+      // Actualizar registros iniciales con los datos nuevos (correo, fecha_nacimiento, pass, etc.)
+      const actualizadas = parsed.map((p) => {
+        const init = INITIAL_PERSONAS.find((ip) => ip.id === p.id || ip.numero_documento === p.numero_documento);
+        if (init) {
+          return {
+            ...p,
+            ...init,
+            datos_adicionales: { ...p.datos_adicionales, ...init.datos_adicionales },
+          };
+        }
+        return p;
+      });
+      return [...actualizadas, ...faltantes];
     } catch {
       return INITIAL_PERSONAS;
     }
@@ -133,6 +145,11 @@ export const App: React.FC = () => {
       created_at: new Date().toISOString(),
     };
     setPersonas((prev) => [creada, ...prev]);
+  };
+
+  const handleEditarPersona = (actualizada: Persona) => {
+    setPersonas((prev) => prev.map((p) => (p.id === actualizada.id ? actualizada : p)));
+    alert('Información de la persona actualizada correctamente.');
   };
 
   const handleImportarPersonas = (nuevas: Partial<Persona>[]) => {
@@ -291,6 +308,7 @@ export const App: React.FC = () => {
                 empresas={empresas}
                 selectedEmpresaId={selectedEmpresaId}
                 onCrearPersona={handleCrearPersona}
+                onEditarPersona={handleEditarPersona}
                 onImportarPersonas={handleImportarPersonas}
                 onLanzarGenerador={handleLanzarGeneradorDesdePersona}
               />
