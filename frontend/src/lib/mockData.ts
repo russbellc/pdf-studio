@@ -207,15 +207,15 @@ export const INITIAL_PLANTILLAS: Plantilla[] = [
       <!-- OBSERVACION 1: Linea separadora de color negro -->
       <div style="width: 100%; height: 1.5px; background-color: #000000; margin: 16px 0 18px 0;"></div>
 
-      <!-- Datos del Estudiante y Programa -->
-      <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14.5px; line-height: 1.6; color: #212121;">
+      <!-- Datos del Estudiante y Programa (Program en 2 filas alineado exacto) -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; font-size: 14px; line-height: 1.45; color: #212121;">
         <div>
-          <div><span style="color: #212121;">Student Name:</span> <strong style="color: #212121; font-size: 15px;">{{persona.nombres}} {{persona.apellidos}}</strong></div>
-          <div style="margin-top: 2px;"><span style="color: #212121;">UoPeople ID:</span> <strong style="color: #212121; font-size: 15px;">{{persona.extra.uopeople_id}}</strong></div>
+          <div style="margin-bottom: 4px;"><span style="color: #212121;">Student Name:</span> <strong style="color: #212121; font-size: 14.5px;">{{persona.nombres}} {{persona.apellidos}}</strong></div>
+          <div><span style="color: #212121;">UoPeople ID:</span> <strong style="color: #212121; font-size: 14.5px;">{{persona.extra.uopeople_id}}</strong></div>
         </div>
-        <div style="text-align: right;">
-          <div><span style="color: #212121;">Program:</span> <strong style="color: #212121; font-size: 15px;">{{persona.extra.carrera}}</strong></div>
-          <div style="margin-top: 2px;"><span style="color: #212121;">Academic Year:</span> <strong style="color: #212121; font-size: 15px;">{{persona.extra.ano_academico}}</strong></div>
+        <div style="text-align: right; max-width: 250px;">
+          <div style="margin-bottom: 4px;"><span style="color: #212121;">Program:</span> <strong style="color: #212121; font-size: 14.5px;">{{persona.extra.carrera}}</strong></div>
+          <div><span style="color: #212121;">Academic Year:</span> <strong style="color: #212121; font-size: 14.5px;">{{persona.extra.ano_academico}}</strong></div>
         </div>
       </div>
 
