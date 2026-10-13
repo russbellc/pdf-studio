@@ -112,7 +112,7 @@ export function inyectarVariables(
 export async function renderHtmlToPdf(
   htmlContent: string,
   orientacion: 'portrait' | 'landscape',
-  tamano_hoja: 'A4' | 'letter'
+  tamano_hoja: 'A4' | 'letter' | '288x373mm' | string
 ): Promise<Buffer> {
   const browser = await getBrowser();
   const context: BrowserContext = await browser.newContext({
@@ -121,6 +121,8 @@ export async function renderHtmlToPdf(
   const page = await context.newPage();
 
   const staticCss = getStaticCss();
+  const is288x373 = tamano_hoja === '288x373mm';
+  const sizeDeclaration = is288x373 ? '288mm 373mm' : `${tamano_hoja} ${orientacion}`;
 
   const fullHtml = `
     <!DOCTYPE html>
@@ -130,7 +132,7 @@ export async function renderHtmlToPdf(
       <style>
         ${staticCss}
         @page {
-          size: ${tamano_hoja} ${orientacion};
+          size: ${sizeDeclaration};
           margin: 0;
         }
       </style>
@@ -144,12 +146,22 @@ export async function renderHtmlToPdf(
   await page.setContent(fullHtml, { waitUntil: 'load' });
 
   const landscape = orientacion === 'landscape';
-  const pdfUint8Array = await page.pdf({
-    format: tamano_hoja === 'A4' ? 'A4' : 'Letter',
+  const pdfOptions: any = {
     landscape,
     printBackground: true,
     margin: { top: '0px', right: '0px', bottom: '0px', left: '0px' },
-  });
+  };
+
+  if (is288x373) {
+    pdfOptions.width = '288mm';
+    pdfOptions.height = '373mm';
+  } else if (tamano_hoja === 'A4') {
+    pdfOptions.format = 'A4';
+  } else {
+    pdfOptions.format = 'Letter';
+  }
+
+  const pdfUint8Array = await page.pdf(pdfOptions);
 
   await context.close();
 
@@ -201,15 +213,48 @@ export async function generarDocumentoIndividual(
         qr_verificacion: '',
         hash_sha256: '',
       })
-    : `${plantilla.nombre} - ${persona.nombres} ${persona.apellidos}`;
+    : `Transaction Report - ${persona.nombres} ${persona.apellidos}`;
+
+  const asuntoDoc = plantilla.config_metadatos?.asunto
+    ? inyectarVariables(plantilla.config_metadatos.asunto, empresa, persona, {
+        fecha_emision: fechaHoy,
+        qr_verificacion: '',
+        hash_sha256: '',
+      })
+    : `Transaction Report - ${persona.nombres} ${persona.apellidos}`;
+
+  const defaultKeywords = `${empresa.razon_social}, ${persona.datos_adicionales?.carrera || persona.cargo || 'Estudiante'}, Admissions, Class Schedule, Fall 2026`;
+  const palabrasClaveDoc = plantilla.config_metadatos?.palabras_clave
+    ? inyectarVariables(plantilla.config_metadatos.palabras_clave, empresa, persona, {
+        fecha_emision: fechaHoy,
+        qr_verificacion: '',
+        hash_sha256: '',
+      })
+    : defaultKeywords;
+
+  const productorDoc = plantilla.config_metadatos?.productor
+    ? inyectarVariables(plantilla.config_metadatos.productor, empresa, persona, {
+        fecha_emision: fechaHoy,
+        qr_verificacion: '',
+        hash_sha256: '',
+      })
+    : 'Ellucian Document Delivery Service (PDF v1.7)';
+
+  const creadorDoc = plantilla.config_metadatos?.creador
+    ? inyectarVariables(plantilla.config_metadatos.creador, empresa, persona, {
+        fecha_emision: fechaHoy,
+        qr_verificacion: '',
+        hash_sha256: '',
+      })
+    : 'Ellucian Colleague Student Self-Servicec v2026.2';
 
   const { pdfFinal, hash_sha256 } = await sellarEInyectarMetadatos(pdfBufferInicial, {
     titulo: tituloDoc,
     autor: empresa.razon_social,
-    asunto: plantilla.config_metadatos?.asunto || `Documento Oficial ${plantilla.nombre}`,
-    palabrasClave: plantilla.config_metadatos?.palabras_clave || 'documento, oficial, pdf',
-    productor: 'PDF Studio Engine v1.0',
-    creador: 'PDF Studio Multi-Empresa',
+    asunto: asuntoDoc,
+    palabrasClave: palabrasClaveDoc,
+    productor: productorDoc,
+    creador: creadorDoc,
   });
 
   // Nomenclatura normalizada: [DNI]_[Apellidos]_[Plantilla].pdf

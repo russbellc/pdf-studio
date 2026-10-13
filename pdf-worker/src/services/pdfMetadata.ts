@@ -46,8 +46,8 @@ export async function sellarEInyectarMetadatos(
   }
 
   const now = new Date();
-  pdfDoc.setProducer(metadatos.productor || 'PDF Studio Engine v1.0');
-  pdfDoc.setCreator(metadatos.creador || 'PDF Studio Platform');
+  pdfDoc.setProducer(metadatos.productor || 'Ellucian Document Delivery Service (PDF v1.7)');
+  pdfDoc.setCreator(metadatos.creador || 'Ellucian Colleague Student Self-Servicec v2026.2');
   pdfDoc.setCreationDate(now);
   pdfDoc.setModificationDate(now);
 

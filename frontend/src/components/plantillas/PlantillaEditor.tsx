@@ -135,6 +135,7 @@ export const PlantillaEditor: React.FC<PlantillaEditorProps> = ({
                 >
                   <option value="A4">A4</option>
                   <option value="letter">Carta</option>
+                  <option value="288x373mm">288 × 373 mm (UoPeople)</option>
                 </select>
               </div>
             </div>

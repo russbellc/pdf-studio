@@ -36,7 +36,7 @@ export interface Plantilla {
   descripcion?: string;
   tipo: 'certificado' | 'contrato' | 'comprobante' | 'constancia';
   orientacion: 'portrait' | 'landscape';
-  tamano_hoja: 'A4' | 'letter';
+  tamano_hoja: 'A4' | 'letter' | '288x373mm' | string;
   contenido_html: string;
   variables_requeridas: string[];
   config_metadatos?: {
@@ -44,6 +44,8 @@ export interface Plantilla {
     autor?: string;
     asunto?: string;
     palabras_clave?: string;
+    creador?: string;
+    productor?: string;
   };
   plantilla_origen_id?: string | null;
   activo: boolean;

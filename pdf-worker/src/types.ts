@@ -26,13 +26,15 @@ export interface PlantillaConfig {
   id?: string;
   nombre: string;
   orientacion: 'portrait' | 'landscape';
-  tamano_hoja: 'A4' | 'letter';
+  tamano_hoja: 'A4' | 'letter' | '288x373mm' | string;
   contenido_html: string;
   config_metadatos?: {
     titulo?: string;
     autor?: string;
     asunto?: string;
     palabras_clave?: string;
+    creador?: string;
+    productor?: string;
   };
 }
 
